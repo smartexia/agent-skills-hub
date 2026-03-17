@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(for dir:*)",
+      "Bash(do echo:*)",
+      "Bash(grep -h ^name: d:Github-Bernardo-Projetosagency-agents-main/*/*.md)",
+      "Bash(sed 's/name: //')",
+      "Bash(for f:*)",
+      "Read(//d/Github-Bernardo-Projetos/agency-agents-main/**)",
+      "Bash(done)",
+      "Bash(start:*)",
+      "Bash(python build_page.py)",
+      "Bash(python -c \":*)",
+      "Read(//d/Github-Bernardo-Projetos/**)",
+      "Read(//c/Users/senna/.claude/**)",
+      "Bash(python:*)"
+    ]
+  }
+}

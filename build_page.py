@@ -84,6 +84,19 @@ def parse_frontmatter(content):
             meta[key.strip()] = val.strip().strip('"\'')
     return meta
 
+SQUADS_BASE = os.path.join(AGENTS_BASE, 'squads')
+
+SQUAD_META = {
+    "squad-tech-development":  {"emoji": "🖥️", "label": "Tech & Dev"},
+    "squad-marketing-growth":  {"emoji": "📢", "label": "Marketing & Growth"},
+    "squad-design-ux":         {"emoji": "🎨", "label": "Design & UX"},
+    "squad-sales":             {"emoji": "💼", "label": "Sales"},
+    "squad-management-ops":    {"emoji": "📋", "label": "Gestão & Ops"},
+    "squad-qa-security":       {"emoji": "🛡️", "label": "QA & Security"},
+    "squad-data-ai":           {"emoji": "🤖", "label": "Data & AI"},
+    "squad-game-dev":          {"emoji": "🎮", "label": "Game Dev"},
+}
+
 # ── Carrega Agentes ─────────────────────────────────────────────────────────
 def load_agents():
     agents = []
@@ -158,8 +171,100 @@ def load_skills():
         })
     return skills
 
+# ── Carrega Squads (com prompts de agentes embutidos) ───────────────────────
+def load_agent_content(rel_path):
+    """Carrega o conteúdo de um agente dado caminho relativo à raiz do projeto."""
+    abs_path = os.path.normpath(os.path.join(AGENTS_BASE, rel_path))
+    if not os.path.isfile(abs_path):
+        return None, None
+    with open(abs_path, 'r', encoding='utf-8', errors='replace') as f:
+        content = f.read()
+    meta = parse_frontmatter(content)
+    prompt = strip_frontmatter(content)
+    name = meta.get('name', os.path.basename(rel_path).replace('.md', ''))
+    emoji = meta.get('emoji', '🤖')
+    return name, emoji, prompt
+
+def build_squad_bundle(squad_content, squad_file_path):
+    """
+    Gera prompt auto-contido: overview do squad + prompts completos de todos os agentes referenciados.
+    Encontra links do tipo [texto](../categoria/arquivo.md) no conteúdo.
+    """
+    # Encontra todos os links para arquivos de agentes
+    agent_links = re.findall(r'\[([^\]]+)\]\((\.\./[^)]+\.md)\)', squad_content)
+
+    if not agent_links:
+        return squad_content
+
+    sections = [squad_content, '\n\n' + '='*70]
+    sections.append('# PROMPTS COMPLETOS DOS AGENTES DO SQUAD')
+    sections.append('# Cole o conteúdo abaixo como System Prompt de cada agente,')
+    sections.append('# ou use o squad inteiro como contexto numa única conversa.')
+    sections.append('='*70 + '\n')
+
+    seen = set()
+    for link_text, rel_path in agent_links:
+        # Resolve path: squads/../category/file.md → category/file.md
+        abs_path = os.path.normpath(os.path.join(os.path.dirname(squad_file_path), rel_path))
+        rel_from_root = os.path.relpath(abs_path, AGENTS_BASE).replace('\\', '/')
+        if rel_from_root in seen:
+            continue
+        seen.add(rel_from_root)
+
+        abs_full = os.path.join(AGENTS_BASE, rel_from_root)
+        if not os.path.isfile(abs_full):
+            continue
+        with open(abs_full, 'r', encoding='utf-8', errors='replace') as f:
+            raw = f.read()
+        meta = parse_frontmatter(raw)
+        prompt = strip_frontmatter(raw)
+        agent_name = meta.get('name', rel_from_root)
+        agent_emoji = meta.get('emoji', '🤖')
+
+        sections.append(f'\n{"─"*60}')
+        sections.append(f'## {agent_emoji} {agent_name}')
+        sections.append(f'### Arquivo: {rel_from_root}')
+        sections.append(f'{"─"*60}\n')
+        sections.append(prompt)
+
+    return '\n'.join(sections)
+
+def load_squads():
+    squads = []
+    if not os.path.isdir(SQUADS_BASE):
+        return squads
+    for fname in sorted(f for f in os.listdir(SQUADS_BASE) if f.endswith('.md') and f != 'README.md'):
+        fpath = os.path.join(SQUADS_BASE, fname)
+        with open(fpath, 'r', encoding='utf-8', errors='replace') as f:
+            content = f.read()
+        slug = fname.replace('.md', '')
+        meta = SQUAD_META.get(slug, {})
+        # Extract name from H1
+        m = re.search(r'^#\s+(.+)$', content, re.MULTILINE)
+        name = m.group(1).strip() if m else slug
+        # Strip leading emoji from name for display
+        name_clean = re.sub(r'^[\U00010000-\U0010ffff\u2600-\u26FF\u2700-\u27BF]\s*', '', name).strip()
+        # Extract Missão description
+        m2 = re.search(r'\*\*Missão\*\*:\s*(.+?)(?:\n|$)', content)
+        desc = m2.group(1).strip() if m2 else ''
+        # Build self-contained bundle with all agent prompts embedded
+        bundle = build_squad_bundle(content, fpath)
+        agent_count = len(set(re.findall(r'\]\((\.\./[^)]+\.md)\)', content)))
+        squads.append({
+            "type":         "squad",
+            "cat":          "squads",
+            "file":         f"squads/{fname}",
+            "name":         name_clean,
+            "emoji":        meta.get("emoji", "🏢"),
+            "label":        meta.get("label", slug),
+            "desc":         desc,
+            "agent_count":  agent_count,
+            "prompt":       bundle,
+        })
+    return squads
+
 # ── Gera HTML ────────────────────────────────────────────────────────────────
-def build_html(agents, skills):
+def build_html(agents, skills, squads):
     agent_cats_with_count = []
     for c in AGENT_CATS:
         cnt = sum(1 for a in agents if a['cat'] == c['id'])
@@ -180,8 +285,11 @@ def build_html(agents, skills):
         raw = json.dumps(obj, ensure_ascii=False)
         return base64.b64encode(raw.encode('utf-8')).decode('ascii')
 
+    total_squads  = len(squads)
+
     agents_b64    = to_b64(agents)
     skills_b64    = to_b64(skills)
+    squads_b64    = to_b64(squads)
     agent_cats_b64 = to_b64(agent_cats_with_count)
     skill_cats_b64 = to_b64([{"id":k,"label":k,"count":v} for k,v in skill_cats_list if isinstance(k, str)])
 
@@ -227,12 +335,20 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 .tab-btn.active{{color:#fff}}
 .tab-btn.agents.active{{background:var(--blue);box-shadow:0 2px 12px rgba(59,130,246,.4)}}
 .tab-btn.skills.active{{background:var(--purple);box-shadow:0 2px 12px rgba(139,92,246,.4)}}
+.tab-btn.squads.active{{background:#16a34a;box-shadow:0 2px 12px rgba(34,197,94,.4)}}
 .tab-btn:not(.active):hover{{background:rgba(255,255,255,.05);color:var(--subtext)}}
 .tab-pill{{font-size:.65rem;padding:1px 6px;border-radius:8px;font-weight:800}}
 .tab-btn.agents .tab-pill{{background:rgba(59,130,246,.2);color:var(--blue)}}
 .tab-btn.agents.active .tab-pill{{background:rgba(255,255,255,.2);color:#fff}}
 .tab-btn.skills .tab-pill{{background:rgba(139,92,246,.2);color:var(--purple)}}
 .tab-btn.skills.active .tab-pill{{background:rgba(255,255,255,.2);color:#fff}}
+.tab-btn.squads .tab-pill{{background:rgba(34,197,94,.2);color:var(--green)}}
+.tab-btn.squads.active .tab-pill{{background:rgba(255,255,255,.2);color:#fff}}
+.squad-card::after{{background:linear-gradient(90deg,#16a34a,var(--green))}}
+.copy-main-btn.squad-btn{{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;box-shadow:0 4px 18px rgba(34,197,94,.3)}}
+.copy-main-btn.squad-btn:hover{{transform:translateY(-2px);box-shadow:0 6px 26px rgba(34,197,94,.4)}}
+.btn-grn{{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}}
+.btn-grn:hover{{background:rgba(34,197,94,.22)}}
 
 .search-wrap{{flex:1;max-width:380px;margin:0 auto;position:relative}}
 .search-wrap input{{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-size:.85rem;padding:7px 36px 7px 32px;outline:none;transition:border-color .15s}}
@@ -495,6 +611,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
     <button class="tab-btn skills" id="tabSkills" onclick="switchTab('skills')">
       ⚡ Skills <span class="tab-pill">{total_skills}</span>
     </button>
+    <button class="tab-btn squads" id="tabSquads" onclick="switchTab('squads')">
+      🏢 Squads <span class="tab-pill">{total_squads}</span>
+    </button>
   </div>
 
   <div class="search-wrap">
@@ -665,14 +784,23 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 function _d(b){{try{{return JSON.parse(decodeURIComponent(escape(atob(b))))}}catch(e){{return JSON.parse(atob(b))}}}}
 const AGENTS=_d("{agents_b64}");
 const SKILLS=_d("{skills_b64}");
+const SQUADS=_d("{squads_b64}");
 const AGENT_CATS=_d("{agent_cats_b64}");
 const SKILL_CATS=_d("{skill_cats_b64}");
+const SQUAD_CATS=[{{"id":"squads","label":"Todos os Squads","icon":"🏢","count":{total_squads}}}];
 
 const PASTE_AGENT=`<h5>📍 Onde colar este agente</h5><div class="paste-grid">
 <div class="paste-item"><div class="dest">☁️ Claude.ai</div><div>Project → Settings → System Prompt</div></div>
 <div class="paste-item"><div class="dest">🤖 ChatGPT</div><div>Settings → Custom Instructions</div></div>
 <div class="paste-item"><div class="dest">⚡ Claude Code</div><div class="path">.claude/agents/nome.md</div></div>
 <div class="paste-item"><div class="dest">💬 Qualquer chat</div><div>1ª mensagem da conversa</div></div>
+</div>`;
+
+const PASTE_SQUAD=`<h5>📍 Como ativar este squad</h5><div class="paste-grid">
+<div class="paste-item"><div class="dest">⚡ Claude Code</div><div>Cole como mensagem inicial: "Ative o Squad X e..."</div></div>
+<div class="paste-item"><div class="dest">☁️ Claude.ai / ChatGPT</div><div>Cole como System Prompt ou 1ª mensagem</div></div>
+<div class="paste-item"><div class="dest">📄 CLAUDE.md</div><div>Adicione como contexto do projeto</div></div>
+<div class="paste-item"><div class="dest">🤖 Multi-agente</div><div>Use com NEXUS para orquestração completa</div></div>
 </div>`;
 
 const PASTE_SKILL=`<h5>📍 Onde colar esta skill</h5><div class="paste-grid">
@@ -698,19 +826,22 @@ function switchTab(t){{
   document.getElementById('searchMain').value='';
   document.getElementById('tabAgents').classList.toggle('active',t==='agents');
   document.getElementById('tabSkills').classList.toggle('active',t==='skills');
-  const isA=t==='agents';
+  document.getElementById('tabSquads').classList.toggle('active',t==='squads');
+  const isA=t==='agents', isS=t==='squads';
   document.getElementById('heroTitle').innerHTML=isA
     ?'{total_agents} Agentes de IA<br>prontos para <em>copiar e usar</em>'
+    :isS?'{total_squads} Squads prontos<br>para <em>qualquer missão</em>'
     :'{total_skills} Skills especializadas<br>prontas para <em>copiar e usar</em>';
   document.getElementById('heroDesc').textContent=isA
     ?"Clique em qualquer agente, copie o prompt completo e cole no Claude, ChatGPT, Gemini — sem abrir arquivo nenhum."
+    :isS?"Times completos pré-montados com agentes de múltiplas divisões. Ative o squad certo e comece imediatamente."
     :"Habilidades específicas para injetar em qualquer IA. Copie e cole como instrução de contexto ou no CLAUDE.md do projeto.";
-  document.getElementById('allIcon').textContent=isA?'🏠':'🏠';
+  document.getElementById('allIcon').textContent=isS?'🏢':'🏠';
   buildSidebar();renderContent();window.scrollTo({{top:0,behavior:'smooth'}});
 }}
 
-function getItems(){{return tab==='agents'?AGENTS:SKILLS}}
-function getCats(){{return tab==='agents'?AGENT_CATS:SKILL_CATS}}
+function getItems(){{return tab==='agents'?AGENTS:tab==='squads'?SQUADS:SKILLS}}
+function getCats(){{return tab==='agents'?AGENT_CATS:tab==='squads'?SQUAD_CATS:SKILL_CATS}}
 
 function buildSidebar(){{
   const items=getItems(), cats=getCats();
@@ -750,10 +881,11 @@ function buildSidebar(){{
   const total=items.length;
   document.getElementById('btnAll').classList.toggle('active',cat==='all');
   document.getElementById('allCount').textContent=total;
-  document.getElementById('sbLbl').textContent=tab==='agents'?'Categorias':'Categorias';
+  document.getElementById('sbLbl').textContent=tab==='squads'?'Times prontos':'Categorias';
   document.getElementById('sbFooter').innerHTML=tab==='agents'
-    ?`<strong>{total_agents} agentes</strong> · {total_skills} skills`
-    :`{total_agents} agentes · <strong>{total_skills} skills</strong>`;
+    ?`<strong>{total_agents} agentes</strong> · {total_skills} skills · {total_squads} squads`
+    :tab==='squads'?`{total_agents} agentes · {total_skills} skills · <strong>{total_squads} squads</strong>`
+    :`{total_agents} agentes · <strong>{total_skills} skills</strong> · {total_squads} squads`;
 }}
 
 function toggleCat(id){{
@@ -816,11 +948,14 @@ function renderContent(){{
 
 function renderCard(a){{
   const idx=getItems().indexOf(a);
-  const isA=tab==='agents';
-  const copyLabel=isA?'📋 Copiar Prompt':'📋 Copiar Skill';
-  return `<div class="card ${{isA?'':'skill-card'}}" onclick="openModal(${{idx}})">
+  const isA=tab==='agents', isSq=tab==='squads';
+  const copyLabel=isA?'📋 Copiar Prompt':isSq?'📋 Copiar Squad':'📋 Copiar Skill';
+  const cardCls=isA?'':isSq?'squad-card':'skill-card';
+  const btnCls=isA?'btn-org':isSq?'btn-grn':'btn-pur';
+  const em=isA?a.emoji:isSq?a.emoji:'⚡';
+  return `<div class="card ${{cardCls}}" onclick="openModal(${{idx}})">
     <div class="card-hd">
-      <div class="card-em">${{isA?a.emoji:'⚡'}}</div>
+      <div class="card-em">${{em}}</div>
       <div class="card-mt">
         <div class="card-name">${{a.name}}</div>
         <div class="card-path">${{a.file}}</div>
@@ -828,34 +963,37 @@ function renderCard(a){{
     </div>
     <div class="card-desc">${{a.desc||''}}</div>
     ${{isA&&a.vibe?`<div class="card-vibe">${{a.vibe}}</div>`:''}}
-    ${{!isA?`<div class="card-meta-row"><span class="card-source">📦 ${{a.source||'community'}}</span><span class="risk-badge risk-${{a.risk||'unknown'}}">${{a.risk||'?'}}</span></div>`:''}}
+    ${{isSq?`<div class="card-meta-row"><span class="card-source">🤖 ${{a.agent_count||'?'}} agentes embutidos · pronto para copiar</span></div>`:''}}
+    ${{!isA&&!isSq?`<div class="card-meta-row"><span class="card-source">📦 ${{a.source||'community'}}</span><span class="risk-badge risk-${{a.risk||'unknown'}}">${{a.risk||'?'}}</span></div>`:''}}
     <div class="card-actions">
       <button class="btn-xs btn-blue" onclick="event.stopPropagation();openModal(${{idx}})">Ver</button>
-      <button class="btn-xs ${{isA?'btn-org':'btn-pur'}}" id="qb${{idx}}" onclick="event.stopPropagation();quickCopy(${{idx}})">${{copyLabel}}</button>
+      <button class="btn-xs ${{btnCls}}" id="qb${{idx}}" onclick="event.stopPropagation();quickCopy(${{idx}})">${{copyLabel}}</button>
     </div>
   </div>`;
 }}
 function renderRow(a){{
   const idx=getItems().indexOf(a);
-  const isA=tab==='agents';
+  const isA=tab==='agents', isSq=tab==='squads';
+  const em=isA?a.emoji:isSq?a.emoji:'⚡';
+  const btnCls=isA?'btn-org':isSq?'btn-grn':'btn-pur';
   return `<div class="row" onclick="openModal(${{idx}})">
-    <div class="row-em">${{isA?a.emoji:'⚡'}}</div>
+    <div class="row-em">${{em}}</div>
     <div class="row-name">${{a.name}}</div>
     <div class="row-desc">${{a.desc||''}}</div>
     <div class="row-acts">
       <button class="btn-xs btn-blue" onclick="event.stopPropagation();openModal(${{idx}})">Ver</button>
-      <button class="btn-xs ${{isA?'btn-org':'btn-pur'}}" onclick="event.stopPropagation();quickCopy(${{idx}})">Copiar</button>
+      <button class="btn-xs ${{btnCls}}" onclick="event.stopPropagation();quickCopy(${{idx}})">Copiar</button>
     </div>
   </div>`;
 }}
 
 function openModal(idx){{
   const a=getItems()[idx]; selAgent=a;
-  const isA=a.type==='agent';
-  const cat=isA?(AGENT_CATS.find(c=>c.id===a.cat)||{{}}):{{}};
-  document.getElementById('mEm').textContent=isA?a.emoji:'⚡';
+  const isA=a.type==='agent', isSq=a.type==='squad';
+  const catObj=isA?(AGENT_CATS.find(c=>c.id===a.cat)||{{}}):{{}};
+  document.getElementById('mEm').textContent=isA?a.emoji:isSq?a.emoji:'⚡';
   document.getElementById('mName').textContent=a.name;
-  document.getElementById('mCat').textContent=(isA?(cat.icon+' '+cat.label):('📦 '+a.cat));
+  document.getElementById('mCat').textContent=isA?(catObj.icon+' '+catObj.label):isSq?('🏢 Squad'):('📦 '+a.cat);
   const vibeEl=document.getElementById('mVibe');
   if(isA&&a.vibe){{vibeEl.textContent='💬 "'+a.vibe+'"';vibeEl.style.display='block'}}
   else vibeEl.style.display='none';
@@ -865,10 +1003,10 @@ function openModal(idx){{
   document.getElementById('copyChars').textContent=chars.toLocaleString()+' chars';
   document.getElementById('previewMeta').textContent=lines+' linhas · '+chars.toLocaleString()+' chars';
   document.getElementById('mPreview').textContent=a.prompt;
-  document.getElementById('pasteGuide').innerHTML=isA?PASTE_AGENT:PASTE_SKILL;
+  document.getElementById('pasteGuide').innerHTML=isA?PASTE_AGENT:isSq?PASTE_SQUAD:PASTE_SKILL;
   const btn=document.getElementById('copyMainBtn');
-  btn.className='copy-main-btn '+(isA?'agent-btn':'skill-btn');
-  document.getElementById('copyMainTxt').textContent=isA?'📋 Copiar Prompt Completo':'📋 Copiar Skill Completa';
+  btn.className='copy-main-btn '+(isA?'agent-btn':isSq?'squad-btn':'skill-btn');
+  document.getElementById('copyMainTxt').textContent=isA?'📋 Copiar Prompt Completo':isSq?'📋 Copiar Squad Completo':'📋 Copiar Skill Completa';
   document.getElementById('overlay').classList.add('open');
   document.body.style.overflow='hidden';
   buildSidebar();
@@ -886,10 +1024,11 @@ function copyFull(){{
     const btn=document.getElementById('copyMainBtn');
     const txt=document.getElementById('copyMainTxt');
     btn.className='copy-main-btn copied';
-    txt.textContent='✅ Copiado! Cole como System Prompt';
+    txt.textContent='✅ Copiado!';
     setTimeout(()=>{{
-      btn.className='copy-main-btn '+(selAgent?.type==='agent'?'agent-btn':'skill-btn');
-      txt.textContent=selAgent?.type==='agent'?'📋 Copiar Prompt Completo':'📋 Copiar Skill Completa';
+      const t=selAgent?.type;
+      btn.className='copy-main-btn '+(t==='agent'?'agent-btn':t==='squad'?'squad-btn':'skill-btn');
+      txt.textContent=t==='agent'?'📋 Copiar Prompt Completo':t==='squad'?'📋 Copiar Squad Completo':'📋 Copiar Skill Completa';
     }},3000);
     toast('✅ Copiado! Cole no Claude, ChatGPT ou qualquer AI.');
   }});
@@ -898,7 +1037,8 @@ function quickCopy(idx){{
   const a=getItems()[idx];
   navigator.clipboard.writeText(a.prompt).then(()=>{{
     const btn=document.getElementById('qb'+idx);
-    if(btn){{const o=btn.textContent;btn.textContent='✅ Copiado!';btn.className='btn-xs btn-ok';setTimeout(()=>{{btn.textContent=o;btn.className='btn-xs '+(tab==='agents'?'btn-org':'btn-pur')}},1800)}}
+    const origCls=tab==='agents'?'btn-org':tab==='squads'?'btn-grn':'btn-pur';
+    if(btn){{const o=btn.textContent;btn.textContent='✅ Copiado!';btn.className='btn-xs btn-ok';setTimeout(()=>{{btn.textContent=o;btn.className='btn-xs '+origCls}},1800)}}
     toast('✅ '+a.name+' copiado!');
   }});
 }}
@@ -932,8 +1072,12 @@ if __name__ == '__main__':
     skills = load_skills()
     print(f"  {len(skills)} skills carregadas")
 
+    print("Carregando squads...")
+    squads = load_squads()
+    print(f"  {len(squads)} squads carregados")
+
     print("Gerando HTML...")
-    html = build_html(agents, skills)
+    html = build_html(agents, skills, squads)
 
     out = os.path.join(AGENTS_BASE, 'index.html')
     with open(out, 'w', encoding='utf-8') as f:

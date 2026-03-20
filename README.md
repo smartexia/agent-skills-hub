@@ -409,6 +409,25 @@ See the **[Nexus Spatial Discovery Exercise](examples/nexus-spatial-discovery.md
 
 ---
 
+## 🏢 Squads — Times Prontos para Missão
+
+**Squads** são composições pré-definidas de agentes e skills organizados como times completos. Em vez de montar um time do zero, ative o squad certo e comece imediatamente.
+
+| Squad | Missão |
+|-------|--------|
+| 🖥️ [Tech & Development](squads/squad-tech-development.md) | Construir sistemas de software do zero |
+| 📢 [Marketing & Growth](squads/squad-marketing-growth.md) | Campanhas multi-canal e crescimento |
+| 🎨 [Design & UX](squads/squad-design-ux.md) | Design de produto e identidade visual |
+| 💼 [Sales](squads/squad-sales.md) | Pipeline de vendas B2B/B2C |
+| 📋 [Gestão & Operações](squads/squad-management-ops.md) | Gestão de projetos e operações |
+| 🛡️ [QA & Security](squads/squad-qa-security.md) | Qualidade, testes e segurança |
+| 🤖 [Data & AI](squads/squad-data-ai.md) | Dados, ML e inteligência artificial |
+| 🎮 [Game Development](squads/squad-game-dev.md) | Desenvolvimento de jogos |
+
+> Ver [squads/README.md](squads/README.md) para instruções completas de uso.
+
+---
+
 ## 🤝 Contributing
 
 We welcome contributions! Here's how you can help:

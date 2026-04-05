@@ -743,7 +743,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
             <ul class="use-list">
               <li>
                 <div class="dest">1. Copie o pacote para o projeto</div>
-                <div class="how">Exemplo de pasta: <code class="code">meu-projeto/.ai/agency-agents/</code></div>
+                <div class="how">Exemplo de pasta: <code class="code">meu-projeto/.ai/agency-agents/</code>. Se quiser automatizar, use <code class="code">scripts/install-project-bundle.sh --target /caminho/do/projeto</code> ou <code class="code">scripts/install-project-bundle.ps1 -Target D:\caminho\do\projeto</code>.</div>
               </li>
               <li>
                 <div class="dest">2. Mantenha agents / skills / squads acessíveis</div>

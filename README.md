@@ -62,6 +62,20 @@ Browse the agents below and copy/adapt the ones you need!
 
 See the [Multi-Tool Integrations](#-multi-tool-integrations) section below for full details.
 
+### Option 4: Copy the Full Bundle into Another Project
+
+If you want a project-scoped bundle with agents, skills, and squads available inside another repo:
+
+```bash
+# Bash
+./scripts/install-project-bundle.sh --target /path/to/your-project
+
+# PowerShell
+.\scripts\install-project-bundle.ps1 -Target D:\path\to\your-project
+```
+
+By default, the bundle is copied to `.ai/agency-agents/` inside the target project.
+
 ---
 
 ## 🎨 The Agency Roster

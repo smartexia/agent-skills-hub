@@ -666,6 +666,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
           <h4>🤔 Qual a diferença?</h4>
           <div class="diff-row"><span class="diff-tag d-agent">Agente</span><p><strong>É uma persona completa.</strong> Tem identidade, missão, regras e estilo de comunicação. Use como System Prompt pra fazer o AI "ser" aquele especialista durante toda a conversa.</p></div>
           <div class="diff-row"><span class="diff-tag d-skill">Skill</span><p><strong>É uma habilidade específica.</strong> Define como executar uma tarefa concreta (ex: "como revisar código", "como escrever SEO"). Injeta conhecimento pontual no AI.</p></div>
+          <div class="diff-row"><span class="diff-tag d-squad">Squad</span><p><strong>É um time pronto.</strong> Reúne vários agentes para uma missão completa. Use quando quiser ativar uma frente inteira de trabalho sem chamar especialista por especialista.</p></div>
         </div>
         <div class="use-cols">
           <div class="use-col">
@@ -689,6 +690,10 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
                 <code class="code">.claude/agents/nome-do-agente.md</code>
               </li>
               <li>
+                <div class="dest">🧠 Codex / outras IAs com projeto aberto</div>
+                <div class="how">Uso prático no Codex: mantenha o arquivo no projeto ou cole o conteúdo na conversa. Ative pedindo algo como <code class="code">"Use o agente X neste projeto"</code>. Não precisa instalar em pasta especial.</div>
+              </li>
+              <li>
                 <div class="dest">💬 Qualquer chat</div>
                 <div class="how">Cole como <strong>primeira mensagem</strong> da conversa — funciona em tudo</div>
               </li>
@@ -703,16 +708,71 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
                 <code class="code">.claude/skills/nome-da-skill/SKILL.md</code>
               </li>
               <li>
-                <div class="dest">☁️ Claude.ai / ChatGPT / Gemini</div>
+                <div class="dest">☁️ Claude.ai / ChatGPT / Gemini / Codex</div>
                 <div class="how">Cole como System Prompt ou adicione junto ao contexto da conversa</div>
               </li>
               <li>
-                <div class="dest">🔧 CLAUDE.md do projeto</div>
-                <div class="how">Cole o conteúdo relevante diretamente no <code class="code">CLAUDE.md</code> do seu projeto</div>
+                <div class="dest">🔧 Arquivo de contexto do projeto</div>
+                <div class="how">Se sua ferramenta usar arquivo de instruções do projeto, cole o conteúdo relevante ali. Ex.: <code class="code">CLAUDE.md</code>.</div>
+              </li>
+              <li>
+                <div class="dest">🧠 Codex no projeto atual</div>
+                <div class="how">Uso prático no Codex: deixe a skill no repositório como referência e peça algo como <code class="code">"Aplique esta skill nesta tarefa"</code>.</div>
               </li>
               <li>
                 <div class="dest">💬 Qualquer chat</div>
                 <div class="how">Cole no início da conversa como instrução de contexto</div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="use-panel" style="margin-top:14px">
+      <button class="use-toggle" id="projectUseToggle" onclick="toggleProjectUse()">
+        <span>📦</span>
+        <span>Como levar tudo para outro projeto</span>
+        <span class="use-lbl">Guia rápido</span>
+        <span class="use-arrow">▼</span>
+      </button>
+      <div class="use-body" id="projectUseBody">
+        <div class="use-cols">
+          <div class="use-col">
+            <div class="use-col-head"><span>🧠</span> <span>Codex</span> <span class="chip chip-blue">projeto aberto</span></div>
+            <ul class="use-list">
+              <li>
+                <div class="dest">1. Copie o pacote para o projeto</div>
+                <div class="how">Exemplo de pasta: <code class="code">meu-projeto/.ai/agency-agents/</code></div>
+              </li>
+              <li>
+                <div class="dest">2. Mantenha agents / skills / squads acessíveis</div>
+                <div class="how">No Codex, o uso é por contexto do projeto ou da conversa. Não há instalação obrigatória em pasta global.</div>
+              </li>
+              <li>
+                <div class="dest">3. Ative por instrução</div>
+                <div class="how">Exemplos: <code class="code">"Use o agente Frontend Developer"</code>, <code class="code">"Aplique esta skill"</code>, <code class="code">"Use o squad Tech & Development"</code>.</div>
+              </li>
+            </ul>
+          </div>
+          <div class="use-col">
+            <div class="use-col-head"><span>⚡</span> <span>Claude Code</span> <span class="chip chip-purple">instalação</span></div>
+            <ul class="use-list">
+              <li>
+                <div class="dest">Agentes</div>
+                <div class="how">Copie para <code class="code">~/.claude/agents/</code></div>
+              </li>
+              <li>
+                <div class="dest">Skills</div>
+                <div class="how">Copie para <code class="code">~/.claude/skills/nome-da-skill/SKILL.md</code></div>
+              </li>
+              <li>
+                <div class="dest">Squads</div>
+                <div class="how">Use o arquivo do squad como contexto inicial da conversa ou do projeto. Squad normalmente não vai para pasta especial.</div>
+              </li>
+              <li>
+                <div class="dest">Automação</div>
+                <div class="how">Se quiser instalar as integrações do repo, use <code class="code">scripts/install.sh --tool claude-code</code>.</div>
               </li>
             </ul>
           </div>
@@ -789,23 +849,25 @@ const AGENT_CATS=_d("{agent_cats_b64}");
 const SKILL_CATS=_d("{skill_cats_b64}");
 const SQUAD_CATS=[{{"id":"squads","label":"Todos os Squads","icon":"🏢","count":{total_squads}}}];
 
-const PASTE_AGENT=`<h5>📍 Onde colar este agente</h5><div class="paste-grid">
+const PASTE_AGENT=`<h5>📍 Como usar este agente</h5><div class="paste-grid">
 <div class="paste-item"><div class="dest">☁️ Claude.ai</div><div>Project → Settings → System Prompt</div></div>
 <div class="paste-item"><div class="dest">🤖 ChatGPT</div><div>Settings → Custom Instructions</div></div>
 <div class="paste-item"><div class="dest">⚡ Claude Code</div><div class="path">.claude/agents/nome.md</div></div>
+<div class="paste-item"><div class="dest">🧠 Codex / projeto aberto</div><div>Sem instalação obrigatória: mantenha o arquivo no projeto ou cole o conteúdo e peça "use este agente"</div></div>
 <div class="paste-item"><div class="dest">💬 Qualquer chat</div><div>1ª mensagem da conversa</div></div>
 </div>`;
 
-const PASTE_SQUAD=`<h5>📍 Como ativar este squad</h5><div class="paste-grid">
-<div class="paste-item"><div class="dest">⚡ Claude Code</div><div>Cole como mensagem inicial: "Ative o Squad X e..."</div></div>
+const PASTE_SQUAD=`<h5>📍 Como usar este squad no projeto</h5><div class="paste-grid">
+<div class="paste-item"><div class="dest">⚡ Claude Code</div><div>Cole o squad na mensagem inicial ou peça para ler o arquivo <code class="code">squads/nome.md</code></div></div>
+<div class="paste-item"><div class="dest">🧠 Codex / outras IAs</div><div>Use o arquivo do squad como contexto do projeto ou da conversa. Squad não é instalado em pasta.</div></div>
 <div class="paste-item"><div class="dest">☁️ Claude.ai / ChatGPT</div><div>Cole como System Prompt ou 1ª mensagem</div></div>
-<div class="paste-item"><div class="dest">📄 CLAUDE.md</div><div>Adicione como contexto do projeto</div></div>
 <div class="paste-item"><div class="dest">🤖 Multi-agente</div><div>Use com NEXUS para orquestração completa</div></div>
 </div>`;
 
-const PASTE_SKILL=`<h5>📍 Onde colar esta skill</h5><div class="paste-grid">
+const PASTE_SKILL=`<h5>📍 Como usar esta skill</h5><div class="paste-grid">
 <div class="paste-item"><div class="dest">⚡ Claude Code</div><div class="path">.claude/skills/nome/SKILL.md</div></div>
-<div class="paste-item"><div class="dest">📄 CLAUDE.md</div><div>Cole no arquivo CLAUDE.md do projeto</div></div>
+<div class="paste-item"><div class="dest">🧠 Codex / projeto aberto</div><div>Sem instalação obrigatória: deixe a skill no projeto e peça "aplique esta skill"</div></div>
+<div class="paste-item"><div class="dest">📄 Arquivo de contexto</div><div>Se sua ferramenta usar arquivo de instruções do projeto, cole ali. Ex.: CLAUDE.md</div></div>
 <div class="paste-item"><div class="dest">☁️ Claude.ai / ChatGPT</div><div>System Prompt ou contexto</div></div>
 <div class="paste-item"><div class="dest">💬 Qualquer chat</div><div>1ª mensagem da conversa</div></div>
 </div>`;
@@ -834,8 +896,8 @@ function switchTab(t){{
     :'{total_skills} Skills especializadas<br>prontas para <em>copiar e usar</em>';
   document.getElementById('heroDesc').textContent=isA
     ?"Clique em qualquer agente, copie o prompt completo e cole no Claude, ChatGPT, Gemini — sem abrir arquivo nenhum."
-    :isS?"Times completos pré-montados com agentes de múltiplas divisões. Ative o squad certo e comece imediatamente."
-    :"Habilidades específicas para injetar em qualquer IA. Copie e cole como instrução de contexto ou no CLAUDE.md do projeto.";
+    :isS?"Times completos pré-montados com agentes de múltiplas divisões. Use o squad como contexto da conversa ou do projeto; não é instalação em pasta."
+    :"Habilidades específicas para injetar em qualquer IA. No Codex, use como contexto do projeto ou da conversa; não exige instalação própria.";
   document.getElementById('allIcon').textContent=isS?'🏢':'🏠';
   buildSidebar();renderContent();window.scrollTo({{top:0,behavior:'smooth'}});
 }}
@@ -1048,6 +1110,11 @@ function copyFilePath(){{
 function toggleUse(){{
   document.getElementById('useToggle').classList.toggle('open');
   document.getElementById('useBody').classList.toggle('open');
+}}
+
+function toggleProjectUse(){{
+  document.getElementById('projectUseToggle').classList.toggle('open');
+  document.getElementById('projectUseBody').classList.toggle('open');
 }}
 function toast(msg){{
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');

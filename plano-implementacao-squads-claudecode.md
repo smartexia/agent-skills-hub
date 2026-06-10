@@ -14,17 +14,17 @@ O projeto possui:
 
 ### Squads Directory
 
-#### [NEW] [squads/](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/)
+#### [NEW] [squads/](squads/)
 Nova pasta raiz para todos os squads.
 
-#### [NEW] [README.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/README.md)
+#### [NEW] [README.md](squads/README.md)
 Índice principal dos Squads com visão geral, navegação e instrução de uso.
 
 ---
 
 ### Os 8 Squads
 
-#### [NEW] [squad-tech-development.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-tech-development.md)
+#### [NEW] [squad-tech-development.md](squads/squad-tech-development.md)
 **🖥️ Squad Tecnologia & Desenvolvimento de Software**
 Time completo para construir um sistema do zero.
 
@@ -47,7 +47,7 @@ Time completo para construir um sistema do zero.
 
 ---
 
-#### [NEW] [squad-marketing-growth.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-marketing-growth.md)
+#### [NEW] [squad-marketing-growth.md](squads/squad-marketing-growth.md)
 **📢 Squad Marketing & Growth**
 Time completo para campanhas multi-canal e crescimento.
 
@@ -70,7 +70,7 @@ Time completo para campanhas multi-canal e crescimento.
 
 ---
 
-#### [NEW] [squad-design-ux.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-design-ux.md)
+#### [NEW] [squad-design-ux.md](squads/squad-design-ux.md)
 **🎨 Squad Design & UX**
 Time completo para design de produto, pesquisa e identidade visual.
 
@@ -91,7 +91,7 @@ Time completo para design de produto, pesquisa e identidade visual.
 
 ---
 
-#### [NEW] [squad-sales.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-sales.md)
+#### [NEW] [squad-sales.md](squads/squad-sales.md)
 **💼 Squad Vendas (Sales)**
 Time completo para pipeline de vendas B2B/B2C.
 
@@ -112,7 +112,7 @@ Time completo para pipeline de vendas B2B/B2C.
 
 ---
 
-#### [NEW] [squad-management-ops.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-management-ops.md)
+#### [NEW] [squad-management-ops.md](squads/squad-management-ops.md)
 **📋 Squad Gestão & Operações**
 Time completo para gestão, compliance e operações.
 
@@ -134,7 +134,7 @@ Time completo para gestão, compliance e operações.
 
 ---
 
-#### [NEW] [squad-qa-security.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-qa-security.md)
+#### [NEW] [squad-qa-security.md](squads/squad-qa-security.md)
 **🛡️ Squad QA & Security**
 Time completo para qualidade, testes e segurança.
 
@@ -157,7 +157,7 @@ Time completo para qualidade, testes e segurança.
 
 ---
 
-#### [NEW] [squad-data-ai.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-data-ai.md)
+#### [NEW] [squad-data-ai.md](squads/squad-data-ai.md)
 **🤖 Squad Data & AI**
 Time completo para dados, ML e inteligência artificial.
 
@@ -177,7 +177,7 @@ Time completo para dados, ML e inteligência artificial.
 
 ---
 
-#### [NEW] [squad-game-dev.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/squads/squad-game-dev.md)
+#### [NEW] [squad-game-dev.md](squads/squad-game-dev.md)
 **🎮 Squad Game Development**
 Time completo para desenvolvimento de jogos.
 
@@ -200,7 +200,7 @@ Time completo para desenvolvimento de jogos.
 
 ### README do Projeto
 
-#### [MODIFY] [README.md](file:///d:/Github-Bernardo-Projetos/agency-agents-main/README.md)
+#### [MODIFY] [README.md](README.md)
 Adicionar seção sobre Squads no README principal do projeto, depois da seção "Real-World Use Cases".
 
 ## Verification Plan

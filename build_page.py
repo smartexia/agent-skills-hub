@@ -298,6 +298,9 @@ def build_html(agents, skills, squads):
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <title>{PROJECT_NAME} - {total_agents} Agentes | {total_skills} Skills</title>
 <style>
 :root{{
@@ -312,18 +315,68 @@ def build_html(agents, skills, squads):
 }}
 *{{box-sizing:border-box;margin:0;padding:0}}
 html{{scroll-behavior:smooth}}
-body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}}
+body{{font-family:'Outfit',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}}
 
 /* ── TOPBAR ── */
 .topbar{{
   position:fixed;top:0;left:0;right:0;z-index:200;height:var(--nav-h);
   background:rgba(7,12,24,.93);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;padding:0 14px;
+  display:flex;align-items:center;gap:14px;padding:0 14px;
 }}
 .sb-toggle{{width:32px;height:32px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);color:var(--subtext);cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;transition:all .14s;flex-shrink:0}}
 .sb-toggle:hover{{color:var(--text);border-color:var(--blue)}}
-.logo{{font-size:1.05rem;font-weight:900;white-space:nowrap;background:linear-gradient(90deg,var(--blue),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+
+/* LOGO DESIGN */
+.logo-container{{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  user-select:none;
+  cursor:pointer;
+  flex-shrink:0;
+}}
+.logo-icon-wrapper{{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  background:rgba(59,130,246,.08);
+  border:1px solid rgba(59,130,246,.2);
+  box-shadow:0 0 15px rgba(59,130,246,.15);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+}}
+.logo-container:hover .logo-icon-wrapper{{
+  transform:translateY(-1px) scale(1.05);
+  border-color:rgba(249,115,22,.4);
+  background:rgba(249,115,22,.08);
+  box-shadow:0 0 20px rgba(249,115,22,.25);
+}}
+.logo-svg{{
+  width:18px;
+  height:18px;
+  filter:drop-shadow(0 0 4px rgba(59,130,246,.4));
+  transition:all .3s ease;
+}}
+.logo-container:hover .logo-svg{{
+  filter:drop-shadow(0 0 6px rgba(249,115,22,.6));
+}}
+.logo-text{{
+  font-family:'Outfit',sans-serif;
+  font-size:1.15rem;
+  font-weight:800;
+  letter-spacing:-0.02em;
+  color:#fff;
+  white-space:nowrap;
+}}
+.logo-text-accent{{
+  background:linear-gradient(90deg,#3b82f6,#f97316);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-weight:900;
+}}
 
 /* TAB SWITCHER */
 .tab-switcher{{display:flex;gap:4px;padding:5px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;flex-shrink:0}}
@@ -461,7 +514,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 .use-list li{{display:flex;flex-direction:column;gap:3px}}
 .use-list li .dest{{font-size:.78rem;font-weight:700;color:var(--text)}}
 .use-list li .how{{font-size:.74rem;color:var(--subtext);line-height:1.5}}
-.use-list li .code{{font-family:monospace;font-size:.72rem;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;color:#7dd3fc;display:inline-block;margin-top:2px}}
+.use-list li .code{{font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:3px 7px;color:#7dd3fc;display:inline-block;margin-top:2px}}
 .use-diff{{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}}
 .use-diff h4{{font-size:.8rem;font-weight:700;color:var(--orange);margin-bottom:10px}}
 .diff-row{{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;font-size:.8rem}}
@@ -500,7 +553,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 .card-em{{font-size:1.4rem;line-height:1;flex-shrink:0;margin-top:1px}}
 .card-mt{{flex:1;min-width:0}}
 .card-name{{font-size:.88rem;font-weight:700;line-height:1.3;margin-bottom:2px}}
-.card-path{{font-size:.64rem;color:var(--muted);font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+.card-path{{font-size:.64rem;color:var(--muted);font-family:'JetBrains Mono',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .card-desc{{font-size:.76rem;color:var(--subtext);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
 .card-vibe{{background:var(--orange-glow);border:1px solid rgba(249,115,22,.18);border-radius:6px;padding:5px 9px;font-size:.71rem;color:var(--orange);font-style:italic;line-height:1.5}}
 .card-meta-row{{display:flex;align-items:center;gap:6px}}
@@ -562,16 +615,16 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 .paste-grid{{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
 .paste-item{{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 11px}}
 .paste-item .dest{{font-size:.75rem;font-weight:700;color:var(--text);margin-bottom:3px}}
-.paste-item .path{{font-family:monospace;font-size:.7rem;color:#7dd3fc;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;display:inline-block}}
+.paste-item .path{{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#7dd3fc;background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;display:inline-block}}
 /* preview */
 .preview-box{{background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;max-height:260px;overflow-y:auto;position:relative}}
-.preview-box pre{{font-family:monospace;font-size:.72rem;color:#a5f3fc;line-height:1.75;padding:12px;white-space:pre-wrap;word-break:break-word}}
+.preview-box pre{{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#a5f3fc;line-height:1.75;padding:12px;white-space:pre-wrap;word-break:break-word}}
 .fade-bot{{position:absolute;bottom:0;left:0;right:0;height:36px;background:linear-gradient(to top,rgba(0,0,0,.4),transparent);pointer-events:none;border-radius:0 0 8px 8px}}
 .preview-box::-webkit-scrollbar{{width:4px}}
 .preview-box::-webkit-scrollbar-thumb{{background:var(--border2)}}
 .preview-lbl{{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:7px;display:flex;justify-content:space-between}}
 .file-row{{background:rgba(0,0,0,.3);border:1px solid var(--border);border-radius:7px;padding:9px 12px;display:flex;gap:9px;align-items:center}}
-.file-path{{font-family:monospace;font-size:.79rem;color:#67e8f9;flex:1;word-break:break-all}}
+.file-path{{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:#67e8f9;flex:1;word-break:break-all}}
 .copy-path-btn{{flex-shrink:0;background:var(--blue-glow);border:1px solid rgba(59,130,246,.3);color:var(--blue);padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.72rem;font-weight:700;transition:all .13s}}
 .copy-path-btn:hover{{background:rgba(59,130,246,.3)}}
 .modal-close-btn{{width:100%;padding:9px;border-radius:8px;font-size:.83rem;font-weight:700;cursor:pointer;border:1px solid var(--border2);background:none;color:var(--subtext);transition:all .14s}}
@@ -602,7 +655,20 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgro
 
 <header class="topbar">
   <button class="sb-toggle" onclick="toggleSidebar()" title="B">☰</button>
-  <div class="logo">{PROJECT_LOGO} {PROJECT_NAME}</div>
+  <div class="logo-container" onclick="location.hash=''; selectCat('all');" title="Resetar filtros">
+    <div class="logo-icon-wrapper">
+      <svg class="logo-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="url(#logo-grad)"/>
+        <defs>
+          <linearGradient id="logo-grad" x1="3" y1="2" x2="21" y2="22" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3b82f6"/>
+            <stop offset="1" stop-color="#f97316"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-text">Agent <span class="logo-text-accent">Skills Hub</span></span>
+  </div>
 
   <div class="tab-switcher">
     <button class="tab-btn agents active" id="tabAgents" onclick="switchTab('agents')">

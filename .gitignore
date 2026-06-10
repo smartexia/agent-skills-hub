@@ -76,3 +76,7 @@ integrations/windsurf/.windsurfrules
 integrations/openclaw/*
 integrations/qwen/agents/
 !integrations/openclaw/README.md
+
+# Claude Code
+.claude/
+
